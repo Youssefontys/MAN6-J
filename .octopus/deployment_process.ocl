@@ -1,0 +1,63 @@
+step "dockerfile-testen" {
+    name = "Dockerfile testen"
+    properties = {
+        Octopus.Action.TargetRoles = "TestBuildPush"
+    }
+
+    action {
+        action_type = "Octopus.Script"
+        environments = ["test"]
+        properties = {
+            Octopus.Action.RunOnServer = "false"
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                 #!/bin/bash
+                
+                                # Clone de Git-repository
+                                git clone https://github.com/Youssefontys/MAN6-J
+                
+                                # Ga naar de juiste directory
+                                cd MAN6-J
+                
+                                # Login bij de Docker registry
+                                docker login -u youssefontys -p Lollol12!
+                
+                                # Build de Docker-image
+                                docker build -t youssefontys/man6 .
+                
+                                # Run de Docker-container
+                                docker run --name test -d -p 80:80 youssefontys/man6
+                
+                                # Wacht even om ervoor te zorgen dat de container opstart
+                                sleep 10
+                
+                                # Test de Docker-container
+                                curl -I http://localhost:8080
+                
+                                # Als de exit code niet 0 is, is er iets fout gegaan en moet de deployment worden afgebroken
+                                if [ $? -ne 0 ]
+                                then
+                                  echo "Test failed. Aborting deployment."
+                
+                                # Stop en verwijder de Docker-container
+                                docker stop test
+                                docker rm test
+                
+                                # Cleanup - Verwijder de lokale Docker-image
+                                docker rmi youssefontys/man6
+                                  exit 1
+                                fi
+                
+                                # Push de Docker-image
+                                docker push youssefontys/man6
+                
+                                # Stop en Clean-up
+                                docker stop test
+                                docker rm test
+                                docker rmi youssefontys/man6
+                EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "Bash"
+        }
+        worker_pool_variable = ""
+    }
+}
