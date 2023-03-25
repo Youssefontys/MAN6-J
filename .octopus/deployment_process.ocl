@@ -61,3 +61,32 @@ step "dockerfile-testen" {
         worker_pool_variable = ""
     }
 }
+
+step "run-a-docker-container" {
+    name = "Run a Docker Container"
+    properties = {
+        Octopus.Action.TargetRoles = "Web-Server"
+    }
+
+    action {
+        action_type = "Octopus.DockerRun"
+        environments = ["production"]
+        properties = {
+            Octopus.Action.Docker.PortAutoMap = "False"
+            Octopus.Action.Docker.RestartPolicy = "on-failure"
+            Octopus.Action.Package.DownloadOnTentacle = "False"
+            Octopus.Action.Package.FeedId = "derepo"
+            Octopus.Action.Package.PackageId = "Feeds-1001"
+        }
+        worker_pool_variable = ""
+
+        packages {
+            acquisition_location = "Server"
+            feed = "derepo"
+            package_id = "Feeds-1001"
+            properties = {
+                SelectionMode = "immediate"
+            }
+        }
+    }
+}
