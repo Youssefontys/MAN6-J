@@ -146,3 +146,17 @@ step "push-on-green" {
         }
     }
 }
+
+step "start-pipeline" {
+    name = "Start Pipeline"
+
+    action {
+        action_type = "Octopus.Manual"
+        environments = ["development"]
+        properties = {
+            Octopus.Action.Manual.BlockConcurrentDeployments = "True"
+            Octopus.Action.Manual.Instructions = "Kan de **_pipeline_** beginnen?"
+            Octopus.Action.Manual.ResponsibleTeamIds = "global/everyone"
+        }
+    }
+}
