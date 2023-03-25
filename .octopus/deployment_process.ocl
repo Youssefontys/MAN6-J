@@ -45,7 +45,7 @@ step "dockerfile-testen" {
                                 sleep 60
                 
                                 # Test de Docker-container
-                                curl -I http://localhost:8080
+                                curl -I http://localhost:80
                 
                                 # Als de exit code niet 0 is, is er iets fout gegaan en moet de deployment worden afgebroken
                                 if [ $? -ne 0 ]
