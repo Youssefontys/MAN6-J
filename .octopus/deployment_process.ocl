@@ -1,3 +1,17 @@
+step "start-pipeline" {
+    name = "Start Pipeline"
+
+    action {
+        action_type = "Octopus.Manual"
+        environments = ["development"]
+        properties = {
+            Octopus.Action.Manual.BlockConcurrentDeployments = "True"
+            Octopus.Action.Manual.Instructions = "Kan de **_pipeline_** beginnen?"
+            Octopus.Action.Manual.ResponsibleTeamIds = "global/everyone"
+        }
+    }
+}
+
 step "dockerfile-testen" {
     name = "Dockerfile testen"
     properties = {
@@ -92,6 +106,20 @@ step "run-a-docker-container" {
     }
 }
 
+step "push-on-green" {
+    name = "Push-on-Green"
+
+    action {
+        action_type = "Octopus.Manual"
+        environments = ["production"]
+        properties = {
+            Octopus.Action.Manual.BlockConcurrentDeployments = "False"
+            Octopus.Action.Manual.Instructions = "Keur de Tests Goed."
+            Octopus.Action.Manual.ResponsibleTeamIds = "global/everyone"
+        }
+    }
+}
+
 step "website-deployen" {
     name = "Website Deployen"
     properties = {
@@ -130,33 +158,5 @@ step "website-deployen" {
             Octopus.Action.Script.Syntax = "Bash"
         }
         worker_pool_variable = ""
-    }
-}
-
-step "push-on-green" {
-    name = "Push-on-Green"
-
-    action {
-        action_type = "Octopus.Manual"
-        environments = ["production"]
-        properties = {
-            Octopus.Action.Manual.BlockConcurrentDeployments = "False"
-            Octopus.Action.Manual.Instructions = "Keur de Tests Goed."
-            Octopus.Action.Manual.ResponsibleTeamIds = "global/everyone"
-        }
-    }
-}
-
-step "start-pipeline" {
-    name = "Start Pipeline"
-
-    action {
-        action_type = "Octopus.Manual"
-        environments = ["development"]
-        properties = {
-            Octopus.Action.Manual.BlockConcurrentDeployments = "True"
-            Octopus.Action.Manual.Instructions = "Kan de **_pipeline_** beginnen?"
-            Octopus.Action.Manual.ResponsibleTeamIds = "global/everyone"
-        }
     }
 }
