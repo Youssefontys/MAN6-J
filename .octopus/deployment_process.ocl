@@ -1,0 +1,162 @@
+step "start-pipeline" {
+    name = "Start Pipeline"
+
+    action {
+        action_type = "Octopus.Manual"
+        environments = ["development"]
+        properties = {
+            Octopus.Action.Manual.BlockConcurrentDeployments = "True"
+            Octopus.Action.Manual.Instructions = "Kan de **_pipeline_** beginnen?"
+            Octopus.Action.Manual.ResponsibleTeamIds = "global/everyone"
+        }
+    }
+}
+
+step "dockerfile-testen" {
+    name = "Dockerfile testen"
+    properties = {
+        Octopus.Action.TargetRoles = "TestBuildPush"
+    }
+
+    action {
+        action_type = "Octopus.Script"
+        environments = ["test"]
+        properties = {
+            Octopus.Action.RunOnServer = "false"
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                 #!/bin/bash
+                
+                                # Clone de Git-repository
+                                git clone https://github.com/Youssefontys/MAN6-J
+                
+                                # Ga naar de juiste directory
+                                cd MAN6-J
+                
+                                # Login bij de Docker registry
+                                docker login -u youssefontys -p Lollol12!
+                
+                                # Build de Docker-image
+                                docker build -t youssefontys/man6 .
+                
+                                # Run de Docker-container
+                                docker run --name test -d -p 80:80 youssefontys/man6
+                
+                                # Wacht even om ervoor te zorgen dat de container opstart
+                                sleep 10
+                
+                                # Test de Docker-container
+                                curl -I http://localhost:8080
+                
+                                # Als de exit code niet 0 is, is er iets fout gegaan en moet de deployment worden afgebroken
+                                if [ $? -ne 0 ]
+                                then
+                                  echo "Test failed. Aborting deployment."
+                
+                                # Stop en verwijder de Docker-container
+                                docker stop test
+                                docker rm test
+                
+                                # Cleanup - Verwijder de lokale Docker-image
+                                docker rmi youssefontys/man6
+                                  exit 1
+                                fi
+                
+                                # Push de Docker-image
+                                docker push youssefontys/man6
+                
+                                # Stop en Clean-up
+                                docker stop test
+                                docker rm test
+                                docker rmi youssefontys/man6
+                EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "Bash"
+        }
+        worker_pool_variable = ""
+    }
+}
+
+step "run-a-docker-container" {
+    name = "Run a Docker Container"
+    properties = {
+        Octopus.Action.TargetRoles = "Web-Server"
+    }
+
+    action {
+        action_type = "Octopus.DockerRun"
+        environments = ["production"]
+        is_disabled = true
+        properties = {
+            Octopus.Action.Docker.PortAutoMap = "False"
+            Octopus.Action.Docker.RestartPolicy = "on-failure"
+            Octopus.Action.Package.DownloadOnTentacle = "False"
+            Octopus.Action.Package.FeedId = "derepo"
+            Octopus.Action.Package.PackageId = "Feeds-1001"
+        }
+        worker_pool_variable = ""
+
+        packages {
+            acquisition_location = "Server"
+            feed = "derepo"
+            package_id = "Feeds-1001"
+            properties = {
+                SelectionMode = "immediate"
+            }
+        }
+    }
+}
+
+step "push-on-green" {
+    name = "Push-on-Green"
+
+    action {
+        action_type = "Octopus.Manual"
+        environments = ["production"]
+        properties = {
+            Octopus.Action.Manual.BlockConcurrentDeployments = "False"
+            Octopus.Action.Manual.Instructions = "Keur de Tests Goed."
+            Octopus.Action.Manual.ResponsibleTeamIds = "global/everyone"
+        }
+    }
+}
+
+step "website-deployen" {
+    name = "Website Deployen"
+    properties = {
+        Octopus.Action.TargetRoles = "Web-Server"
+    }
+
+    action {
+        action_type = "Octopus.Script"
+        environments = ["production"]
+        properties = {
+            Octopus.Action.RunOnServer = "false"
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                #!/bin/bash
+                                # Run de Docker-container
+                                docker run --name productie -d -p 80:80 youssefontys/man6
+                
+                                # Wacht even om ervoor te zorgen dat de container opstart
+                                sleep 10
+                
+                                # Test de Docker-container
+                                curl -I http://localhost:8080
+                
+                                # Als de exit code niet 0 is, is er iets fout gegaan en moet de deployment worden afgebroken
+                                if [ $? -ne 0 ]
+                                then
+                                  echo "Test failed. Aborting deployment."
+                
+                                # Stop en verwijder de Docker-container
+                                docker stop productie
+                                docker rm productie
+                
+                                  exit 1
+                                fi
+                EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "Bash"
+        }
+        worker_pool_variable = ""
+    }
+}
