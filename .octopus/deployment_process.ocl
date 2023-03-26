@@ -133,6 +133,10 @@ step "website-deployen" {
             Octopus.Action.RunOnServer = "false"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 #!/bin/bash
+                                # Stop en verwijder de Docker-container
+                                docker stop productie
+                                docker rm productie
+                                
                                 # Run de Docker-container
                                 docker run --name productie -d -p 80:80 youssefontys/man6
                 
@@ -147,7 +151,6 @@ step "website-deployen" {
                                 then
                                   echo "Test failed. Aborting deployment."
                 
-                                # Stop en verwijder de Docker-container
                                 docker stop productie
                                 docker rm productie
                 
