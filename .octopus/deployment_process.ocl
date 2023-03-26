@@ -138,7 +138,7 @@ step "website-deployen" {
                                 docker rm productie
                                 
                                 # Run de Docker-container
-                                docker run --name productie -d -p 80:80 youssefontys/man6
+                                docker run --name productie -d -p 80:80 youssefontys/man6:latest
                 
                                 # Wacht even om ervoor te zorgen dat de container opstart
                                 sleep 15
