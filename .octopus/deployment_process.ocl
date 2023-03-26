@@ -27,10 +27,10 @@ step "dockerfile-testen" {
                  #!/bin/bash
                 
                                 # Clone de Git-repository
-                                git clone https://github.com/Youssefontys/MAN6-J
+                                git clone https://github.com/Youssefontys/MAN6
                 
                                 # Ga naar de juiste directory
-                                cd MAN6-J
+                                cd MAN6
                 
                                 # Login bij de Docker registry
                                 docker login -u youssefontys -p Lollol12!
@@ -68,41 +68,12 @@ step "dockerfile-testen" {
                                 docker stop test
                                 docker rm test
                                 docker rmi youssefontys/man6
+                                rm -f MAN6
                 EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "Bash"
         }
         worker_pool_variable = ""
-    }
-}
-
-step "run-a-docker-container" {
-    name = "Run a Docker Container"
-    properties = {
-        Octopus.Action.TargetRoles = "Web-Server"
-    }
-
-    action {
-        action_type = "Octopus.DockerRun"
-        environments = ["production"]
-        is_disabled = true
-        properties = {
-            Octopus.Action.Docker.PortAutoMap = "False"
-            Octopus.Action.Docker.RestartPolicy = "on-failure"
-            Octopus.Action.Package.DownloadOnTentacle = "False"
-            Octopus.Action.Package.FeedId = "derepo"
-            Octopus.Action.Package.PackageId = "Feeds-1001"
-        }
-        worker_pool_variable = ""
-
-        packages {
-            acquisition_location = "Server"
-            feed = "derepo"
-            package_id = "Feeds-1001"
-            properties = {
-                SelectionMode = "immediate"
-            }
-        }
     }
 }
 
