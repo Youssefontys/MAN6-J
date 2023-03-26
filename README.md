@@ -1,2 +1,2 @@
-# MAN6-J
+# MAN6
 Support Services Challenge 6
