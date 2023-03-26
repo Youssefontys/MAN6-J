@@ -42,7 +42,7 @@ step "dockerfile-testen" {
                                 docker run --name test -d -p 80:80 youssefontys/man6
                 
                                 # Wacht even om ervoor te zorgen dat de container opstart
-                                sleep 60
+                                sleep 30
                 
                                 # Test de Docker-container
                                 curl -I http://localhost:80
