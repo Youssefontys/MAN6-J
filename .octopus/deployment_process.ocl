@@ -133,20 +133,27 @@ step "website-deployen" {
             Octopus.Action.RunOnServer = "false"
             Octopus.Action.Script.ScriptBody = <<-EOT
                 #!/bin/bash
-                                # Stop en verwijder de Docker-container
-                                docker stop productie
-                                docker rm productie
+                
+                # Stop and remove all running containers
+                docker stop $(docker ps -aq)
+                docker rm $(docker ps -aq)
+                
+                # Remove all images
+                docker rmi $(docker images -q)
+                
+                # Pull the latest image
+                docker pull youssefontys/man6:latest
+                
+                # Run de Docker-container
+                docker run --name productie -d -p 80:80 youssefontys/man6:latest
+                
+                # Wacht even om ervoor te zorgen dat de container opstart
+                sleep 10
                                 
-                                # Run de Docker-container
-                                docker run --name productie -d -p 80:80 youssefontys/man6:latest
+                # Test de Docker-container
+                curl -I http://localhost:80
                 
-                                # Wacht even om ervoor te zorgen dat de container opstart
-                                sleep 15
-                
-                                # Test de Docker-container
-                                curl -I http://localhost:80
-                
-                                # Als de exit code niet 0 is, is er iets fout gegaan en moet de deployment worden afgebroken
+                # Als de exit code niet 0 is, is er iets fout gegaan en moet de deployment worden afgebroken
                                 if [ $? -ne 0 ]
                                 then
                                   echo "Test failed. Aborting deployment."
@@ -155,7 +162,11 @@ step "website-deployen" {
                                 docker rm productie
                 
                                   exit 1
-                                fi
+                                fi                
+                
+                                
+                
+                                
                 EOT
             Octopus.Action.Script.ScriptSource = "Inline"
             Octopus.Action.Script.Syntax = "Bash"
